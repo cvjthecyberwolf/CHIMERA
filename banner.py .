@@ -1,0 +1,176 @@
+import os
+import sys
+import time
+import threading
+from colorama import init, Fore, Style
+import pyfiglet
+
+# Initialize Colorama for Windows/Linux/Mac
+init()
+
+# ==========================================
+# CONFIGURATION
+# ==========================================
+# Try to import pygame for sound. If not available, disable sound.
+SOUND_ENABLED = False
+try:
+    import pygame
+    pygame.mixer.init()
+    SOUND_ENABLED = True
+except ImportError:
+    print("[*] Pygame not found. Running in silent mode (visuals only).")
+
+# ==========================================
+# CYBERPUNK ASCII ASSETS
+# ==========================================
+
+def get_falcon_frame(x_pos):
+    """
+    Returns an ASCII frame of a falcon at a specific X position.
+    This creates the illusion of flight.
+    """
+    # Simple ASCII falcon (You can replace this with a larger art piece)
+    falcon_art = [
+        "          \       /            ",
+        "           \  '  /             ",
+        "         '- .`-'. .-'          ",
+        "      .' .-' . `-. `-.         ",
+        "   .' .-'   .   `-.   `-.      ",
+        "   \\   /     \\     \\     \\     ",
+        "    `-/       `     `      `   "
+    ]
+    
+    # Create a blank canvas (screen width)
+    screen_width = 80
+    canvas = [' '] * screen_width
+    
+    # Place the falcon at the current X position
+    start_x = x_pos
+    for i, line in enumerate(falcon_art):
+        if start_x < screen_width:
+            # This is a very basic overlay. In a real game engine, you'd use a buffer.
+            # For CLI, we just print spaces + art.
+            pass
+    
+    # We will handle the animation by printing spaces before the art.
+    return falcon_art
+
+def play_boot_sound():
+    """Plays a 'whoosh' or 'cyber' sound on a separate thread."""
+    if SOUND_ENABLED:
+        try:
+            # You need a 'whoosh.wav' or 'cyber_startup.wav' file in the same directory.
+            pygame.mixer.music.load("cyber_startup.wav")
+            pygame.mixer.music.play()
+        except:
+            print(Fore.CYAN + "      [ SOUND: WHOOSH! ]" + Style.RESET_ALL)
+    else:
+        # Visual representation of sound
+        sys.stdout.write(Fore.CYAN + "      ▶️  Playing Cyber Theme...\n" + Style.RESET_ALL)
+
+def animate_falcon():
+    """Animates the falcon flying across the screen."""
+    # Clear the screen first
+    os.system('cls' if os.name == 'nt' else 'clear')
+    
+    print("\n\n") # Top padding
+    
+    # Falcon starting position (off-screen left)
+    x = -20
+    
+    # Start the sound in a separate thread so animation doesn't freeze
+    sound_thread = threading.Thread(target=play_boot_sound)
+    sound_thread.start()
+    
+    # Animation Loop
+    while x < 80:
+        # Clear the line (this is a simple way; a full ncurses lib would be better)
+        os.system('cls' if os.name == 'nt' else 'clear')
+        print("\n\n")
+        
+        # Print empty lines to move the falcon down (Y-axis)
+        for _ in range(5):
+            print()
+            
+        # Print spaces for X-axis movement
+        prefix = " " * x
+        
+        # Print the Falcon
+        falcon_color = Fore.MAGENTA
+        reset = Style.RESET_ALL
+        print(falcon_color + prefix + "          \\       /            " + reset)
+        print(falcon_color + prefix + "           \\  '  /             " + reset)
+        print(falcon_color + prefix + "         '- .`-'. .-'          " + reset)
+        print(falcon_color + prefix + "      . ' .-' . `-. `-.        " + reset)
+        print(falcon_color + prefix + "   .' .-'   .   `-.   `-.      " + reset)
+        print(falcon_color + prefix + "   \   /     \     \     \     " + reset)
+        print(falcon_color + prefix + "    '-/       `     `      `   " + reset)
+        
+        # Print the "Trail" (Matrix-like dots)
+        if x > 10:
+            trail = " " * (x - 10) + Fore.CYAN + " . . . " + Style.RESET_ALL
+            print(trail)
+        
+        # Move the falcon to the right
+        x += 2
+        time.sleep(0.05) # Speed of flight
+    
+    # Hold the final frame for a moment
+    time.sleep(0.5)
+
+def print_glowing_banner():
+    """Prints the 'CHIMERA' text with a glowing effect."""
+    # Generate the ASCII art
+    try:
+        # Use a font that looks like "Glowing" or "Cyber"
+        ascii_banner = pyfiglet.figlet_format("CHIMERA", font="doom")
+    except:
+        # Fallback if font not found
+        ascii_banner = pyfiglet.figlet_format("CHIMERA")
+    
+    # Create a "Glowing" effect by printing multiple colors slightly offset
+    # We'll simulate this by printing the text multiple times in different neon colors
+    lines = ascii_banner.split('\n')
+    
+    # Define Cyberpunk Neon Colors
+    colors = [Fore.CYAN, Fore.MAGENTA, Fore.BLUE, Fore.GREEN]
+    
+    # Print a border
+    print(Fore.RED + "="*70 + Style.RESET_ALL)
+    print()
+    
+    # Print each line with a color cycle
+    for i, line in enumerate(lines):
+        color = colors[i % len(colors)]
+        # Add a "shadow" effect by printing white first, then the neon color
+        print(" " + line) # White shadow (default)
+        print(color + line + Style.RESET_ALL)
+    
+    print()
+    print(Fore.RED + "="*70 + Style.RESET_ALL)
+    
+    # Print the Developer Tag with a Pulse effect
+    print("\n\n")
+    # Simulate a pulse by changing the intensity
+    for intensity in [Style.BRIGHT, Style.NORMAL]:
+        sys.stdout.write(f"\r{Fore.YELLOW}{intensity}      >>> DEVELOPED BY: CVJ THE CYBER WOLF {Style.RESET_ALL}    ")
+        time.sleep(0.5)
+        sys.stdout.write(f"\r{Fore.MAGENTA}{intensity}      >>> NEXUS PROTOCOL: ACTIVE {Style.RESET_ALL}        ")
+        time.sleep(0.5)
+    # Final static text
+    print(f"\n{Fore.CYAN}      [+] SYSTEMS GREEN | [+] WEAPONS HOT | [+] CHIMERA ONLINE {Style.RESET_ALL}")
+    print(Fore.WHITE + "      " + "-"*60 + Style.RESET_ALL)
+
+# ==========================================
+# MAIN BOOT SEQUENCE
+# ==========================================
+
+def boot_chimera():
+    """The main function to launch the animation and banner."""
+    animate_falcon()
+    print_glowing_banner()
+    print("\n\n")
+
+# Run it
+if __name__ == '__main__':
+    boot_chimera()

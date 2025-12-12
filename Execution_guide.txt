@@ -1,0 +1,93 @@
+🚀 Step-by-Step Execution Guide
+
+
+Step 1: Start the C2 Server (The Brain)
+
+You must run the main server first so that the "agents" (payloads) have something to connect to.
+
+Go back to the main CHIMERA directory:
+
+cd ..
+
+Start the server:
+
+python chimera_server.pyExpected Output:
+
+🐉 Chimera C2 Server is running on port 5000...
+Use 'CHIMERA> help' for commands
+
+Keep this terminal window open. This is your command center.
+
+
+Step 2: Compile the "Pegasus" Module (The Eye)
+
+This is the C++ code that will (in simulation) access the camera.
+
+Open a new terminal window (or tab).
+
+Navigate to the modules folder.
+
+Compile the C++ file:
+
+g++ modules/pegasus_camera.cpp -o modules/pegasus_agent `pkg-config --cflags --libs opencv4`Note: If  pkg-config  doesn't work in Termux, you might need to link OpenCV manually or install it via  pkg install opencv . If compilation fails, we will handle the error in the next section.
+
+
+Step 3: Simulate the "Ghost" Agent (The Hand)
+
+Since we are likely on a Linux/Android system (Termux), we won't be running the PowerShell script. Instead, we will simulate the Ghost agent using Bash.
+
+In your new terminal, make the GeoSpy script executable:
+
+chmod +x modules/fing_geospy.sh
+
+Run the network and location scan:
+
+bash modules/fing_geospy.shThis will scan your local network and determine your IP location, then send a report to the C2 server (if the server is running and the script is edited with your C2 IP).
+
+
+Step 4: Run the OSINT "Sherlock" Module (The Mind)
+
+This gathers intelligence. You need to specify a username to search for.
+
+Run the Sherlock module:
+
+python modules/sherlock_intel.py <username>Replace  <username>  with a real username you want to look up (e.g.,  python modules/sherlock_intel.py john_doe ).
+
+Note: You need to have the actual Sherlock project cloned into a folder named  sherlock  inside this directory for this to work.
+
+ 
+
+🐞 Troubleshooting Common Issues (Termux/Android)
+
+Given your path ( u0_a195 ), you are likely running this on an Android device via Termux. Here are fixes for common errors:
+
+
+1. Camera Access Error (Pegasus)
+
+If the C++ code fails to compile or run due to camera permissions:
+
+Fix: Termux needs explicit camera permission.
+
+pkg install termux-api
+termux-camera-info # This will prompt for permission
+
+The C++  VideoCapture  might not work directly. You might need to use  termux-camera-photo  as a fallback in the script.
+
+
+2. "Permission Denied" on Scripts
+
+If you get "Permission Denied" when running  .sh  files:
+
+Fix: Run  chmod +x filename.sh  on each script.
+
+
+3. Port 5000 Not Accessible
+
+If the server starts but agents can't connect:
+
+Fix: Make sure your firewall allows loopback or local network traffic. For local testing, use  127.0.0.1  or your local IP (e.g.,  192.168.x.x ).
+
+
+📝 Summary of Commands
+
+To get everything running quickly, here is the cheat sheet:

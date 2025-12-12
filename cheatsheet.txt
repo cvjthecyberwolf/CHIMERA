@@ -1,0 +1,12 @@
+# Terminal 1: Start the Server
+cd ~/downloads/Anonymous/CHIMERA
+python chimera_server.py
+
+# Terminal 2: Run Network Scan (Fing/GeoSpy)
+cd ~/downloads/Anonymous/CHIMERA
+bash modules/fing_geospy.sh
+
+# Terminal 3: Run OSINT (Sherlock)
+cd ~/downloads/Anonymous/CHIMERA
+python modules/sherlock_intel.py target_username
+

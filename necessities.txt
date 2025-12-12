@@ -1,0 +1,14 @@
+# For the Server and OSINT
+pkg install python git curl -y
+
+# Install Python libraries
+pip install flask requests opencv-python
+
+# Install Nmap for network scanning
+pkg install nmap -y
+
+# Install G++ compiler for the C++ module
+pkg install g++ -y
+
+# Install OpenCV for the camera module (might require specific setup in Termux)
+pkg install opencv -y

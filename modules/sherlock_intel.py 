@@ -1,0 +1,24 @@
+import subprocess
+import json
+
+def hunt_username(username):
+    print(f"[+] Hunting {username} across 300+ platforms...")
+    
+    # Call the Sherlock CLI
+    result = subprocess.run(
+        ['python3', '../sherlock/sherlock.py', '--json-results', '300', username],
+        capture_output=True, text=True
+    )
+    
+    # Parse the JSON output
+    try:
+        data = json.loads(result.stdout)
+        with open(f"reports/{username}_profile.json", 'w') as f:
+            json.dump(data, f)
+        print(f"[+] Found {len(data)} profiles.")
+    except:
+        print("[-] No results or error.")
+
+if __name__ == '__main__':
+    import sys
+    hunt_username(sys.argv)

